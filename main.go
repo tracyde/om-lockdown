@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/tracyde/om-lockdown/certificates"
+
 	"github.com/tracyde/om-lockdown/banner"
 	"github.com/tracyde/om-lockdown/session"
 )
@@ -15,6 +17,8 @@ var (
 	hostname   = flag.String("hostname", "", "resolvable fqdn or ip address of opsmanager vm")
 	username   = flag.String("username", "ubuntu", "username used to connect to opsmanager vm - overwritten by `OM_VMUSERNAME`")
 	password   = flag.String("password", "", "password used with username to connect to opsmanager vm - overwritten by `OM_VMPASSWORD`")
+	certFile   = flag.String("cert", "", "PEM file to be used as opsmanager TLS certificate")
+	keyFile    = flag.String("key", "", "PEM file to be used as opsmanager TLS private key")
 )
 
 func usage() {
@@ -52,6 +56,16 @@ func main() {
 		err := banner.UpdateBanner(*bannerFile, session)
 		if err != nil {
 			log.Fatalf("Error running command: %s", err)
+		}
+	}
+
+	if *certFile != "" || *keyFile != "" {
+		if *certFile == "" || *keyFile == "" {
+			log.Fatalf("Both cert and key options must be set!")
+		}
+		err := certificates.UpdateCertificates(*certFile, *keyFile, session)
+		if err != nil {
+			log.Fatalf("Error updating certificate: %s", err)
 		}
 	}
 }
